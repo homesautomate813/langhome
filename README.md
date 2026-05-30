@@ -1,0 +1,2 @@
+# langhome
+lang home automation
