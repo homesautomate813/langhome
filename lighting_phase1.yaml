@@ -1,0 +1,105 @@
+# packages/lighting_phase1.yaml
+# Phase 1 - Zone lighting scenes for langhome
+# Target: Home Assistant @ 10.100.10.10
+# Zones: Living Room, Pub, Patio (complete) | Garden (pending Meross integration)
+#
+# Requires in configuration.yaml:
+#   homeassistant:
+#     packages: !include_dir_named packages
+
+scene:
+  # ---------- Living Room (Caseta dimmer) ----------
+  - name: Living Bright
+    icon: mdi:sofa
+    entities:
+      light.living_room_main_lights: { state: "on", brightness: 255 }   # 100%
+  - name: Living Relax
+    icon: mdi:sofa
+    entities:
+      light.living_room_main_lights: { state: "on", brightness: 90 }    # ~35%
+
+  # ---------- Pub (Caseta dimmer) ----------
+  - name: Pub Bright
+    icon: mdi:glass-mug-variant
+    entities:
+      light.pub_main_lights: { state: "on", brightness: 255 }
+  - name: Pub Relax
+    icon: mdi:glass-mug-variant
+    entities:
+      light.pub_main_lights: { state: "on", brightness: 90 }
+
+  # ---------- Patio (Caseta on/off switch + Pentair pool light) ----------
+  # Back porch is a PD-8ANS wall SWITCH (on/off only, no dimming).
+  - name: Patio On
+    icon: mdi:string-lights
+    entities:
+      switch.exterior_back_porch_lights: "on"
+  - name: Patio Ambiance
+    icon: mdi:string-lights
+    entities:
+      switch.exterior_back_porch_lights: "on"
+      light.pentair_08_d5_de_lights: { state: "on" }
+
+  # ---------- Garden (TODO: Meross 2-port plug) ----------
+  # 1) Add the plug to HA via the `meross_lan` HACS integration (local control).
+  # 2) Its two outlets will appear as switches - replace the placeholders below.
+  # - name: Garden On
+  #   icon: mdi:flower
+  #   entities:
+  #     switch.garden_plug_1: "on"
+  #     switch.garden_plug_2: "on"
+
+  # ---------- Cross-zone moments (the party buttons) ----------
+  - name: Party Entertaining
+    icon: mdi:party-popper
+    entities:
+      light.living_room_main_lights: { state: "on", brightness: 140 }   # ~55%
+      light.pub_main_lights: { state: "on", brightness: 180 }           # ~70%
+      switch.exterior_back_porch_lights: "on"
+      light.pentair_08_d5_de_lights: { state: "on" }
+      # switch.garden_plug_1: "on"   # add once Meross is integrated
+      # switch.garden_plug_2: "on"
+
+  - name: Entertaining Off
+    icon: mdi:power
+    entities:
+      light.living_room_main_lights: { state: "off" }
+      light.pub_main_lights: { state: "off" }
+      switch.exterior_back_porch_lights: "off"
+      # Pool light intentionally NOT turned off here (don't kill it mid-swim).
+      # switch.garden_plug_1: "off"  # add once Meross is integrated
+      # switch.garden_plug_2: "off"
+
+# ============================================================================
+# OPTIONAL: repurpose the spare Pico ("Unassigned Chandelier Remote 1")
+# as a physical Party / All-Off remote.
+#
+# Easiest path: build this in the HA UI (Settings > Automations > Create >
+# trigger type "Device", pick the Pico). The UI auto-fills the correct
+# device_id and the exact button subtypes for your PJ2-3BRL. Then either keep
+# it in automations.yaml (UI-managed) or paste the generated YAML here.
+#
+# Skeleton for reference:
+#
+# automation:
+#   - alias: "Spare Pico - Party"
+#     trigger:
+#       - platform: device
+#         domain: lutron_caseta
+#         device_id: <PICO_DEVICE_ID>   # from the UI device picker
+#         type: press
+#         subtype: "on"                 # top button (confirm in UI)
+#     action:
+#       - service: scene.turn_on
+#         target: { entity_id: scene.party_entertaining }
+#   - alias: "Spare Pico - All Off"
+#     trigger:
+#       - platform: device
+#         domain: lutron_caseta
+#         device_id: <PICO_DEVICE_ID>
+#         type: press
+#         subtype: "off"                # bottom button
+#     action:
+#       - service: scene.turn_on
+#         target: { entity_id: scene.entertaining_off }
+# ============================================================================
